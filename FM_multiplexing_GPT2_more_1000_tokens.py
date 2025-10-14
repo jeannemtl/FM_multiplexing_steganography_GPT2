@@ -74,7 +74,7 @@ def get_token_probabilities(model, tokenizer, context, device, top_k=50):
 
 def encode_bits_to_token_selection(bits, frequency, num_tokens):
     """
-    Encode bits using STRONGER frequency modulation to bias token selection
+    Encode bits using VERY STRONG frequency modulation to bias token selection
     
     Args:
         bits: binary array to encode
@@ -85,18 +85,18 @@ def encode_bits_to_token_selection(bits, frequency, num_tokens):
         bias_vector: frequency-modulated bias to apply to token probabilities
     """
     # Create frequency signature with MORE CYCLES
-    t = np.linspace(0, 10, num_tokens)  # 10 periods instead of len(bits)
+    t = np.linspace(0, 10, num_tokens)  # 10 periods
     carrier = np.sin(2 * np.pi * frequency * t)
     
     # Use more bits to create stronger amplitude modulation
     bit_value = np.mean(bits)  # Overall bit density (0 to 1)
     
-    # MUCH STRONGER modulation: 0.3 to 0.7 range (was 0.1 to 0.3)
-    amplitude = 0.3 + 0.4 * bit_value
+    # VERY STRONG modulation: 0.5 to 1.0 range (±50%)
+    amplitude = 0.5 + 0.5 * bit_value
     bias = amplitude * carrier
     
-    # Normalize but keep it STRONG (0.3 instead of 0.1)
-    bias = bias / (np.max(np.abs(bias)) + 1e-10) * 0.3
+    # Normalize but keep it VERY STRONG (0.5 instead of 0.3)
+    bias = bias / (np.max(np.abs(bias)) + 1e-10) * 0.5
     
     return bias
 
@@ -301,8 +301,10 @@ def demonstrate_fm_gpt2_steganography():
     
     if avg_kl < 0.01:
         print("✓ Excellent: Stegotext is statistically indistinguishable from covertext")
-    elif avg_kl < 0.1:
+    elif avg_kl < 0.05:
         print("✓ Good: Low detectability")
+    elif avg_kl < 0.1:
+        print("⚠ Moderate: Some detectability (trade-off for stronger signals)")
     else:
         print("⚠ Detectable: KL divergence is significant")
     
@@ -324,6 +326,12 @@ def demonstrate_fm_gpt2_steganography():
     print("3. Token selection is subtly biased by FM-modulated signals")
     print("4. Receiver uses FFT to detect frequency signatures")
     print("5. Text appears normal, but contains hidden multiplexed channels")
+    print()
+    print("TRADE-OFF:")
+    print(f"  Bias strength: ±50% (strong signals)")
+    print(f"  KL divergence: {avg_kl:.4f}")
+    print(f"  Security: {'Excellent' if avg_kl < 0.01 else 'Good' if avg_kl < 0.05 else 'Moderate'}")
+    print(f"  Detectability: {'High' if avg_kl > 0.05 else 'Medium' if avg_kl > 0.02 else 'Low'}")
     print("="*80)
 
 
